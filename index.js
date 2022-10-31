@@ -18,7 +18,7 @@ app.use('/posts', postRoutes);
 app.use('/user', userRoutes);
 
 app.get('/', (req, res) => {
-    res.send('App is Running');
+    res.send('This is the api for social media application');
 });
 
 const PORT = process.env.PORT || 5000;

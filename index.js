@@ -13,7 +13,7 @@ dotenv.config();
 app.use(cors());
 app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
 app.use(bodyParser.json({ limit: "30mb", extended: true }));
-app.use(express.static('public'));
+app.use('/public', express.static('public'));
 app.use('/posts', postRoutes);
 app.use('/user', userRoutes);
 

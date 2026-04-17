@@ -95,13 +95,12 @@ export const getTrendingPosts = async (req, res) => {
 };
 
 export const createPost = async (req, res) => {
-    const url = req.protocol + '://' + req.get('host');
-
     const newPost = new Posts({
         creator: req.userId,
         name:req.body.name,
         message: req.body.message,
-        selectedFile: req.file == null ? '' : url + '/public/' + req.file.filename,
+        // Store a relative path so we never persist an incorrect host (e.g. localhost behind proxies).
+        selectedFile: req.file == null ? '' : `/public/${req.file.filename}`,
         tags: parseTags(req.body.tags),
         createdAt: new Date().toISOString()
     });
@@ -117,14 +116,13 @@ export const createPost = async (req, res) => {
 }
 
 export const updatePost = async (req, res) => {
-    const url = req.protocol + '://' + req.get('host');
     const existing = await Posts.findById(req.params.postId);
     if (!existing) return res.status(404).json('No post with given id exists.');
 
     const updatedPost = {
         message: req.body.message,
         tags: parseTags(req.body.tags),
-        selectedFile: req.file == null ? existing.selectedFile : url + '/public/' + req.file.filename,
+        selectedFile: req.file == null ? existing.selectedFile : `/public/${req.file.filename}`,
     };
 
     try {

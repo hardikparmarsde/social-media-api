@@ -1,13 +1,8 @@
 import multer from "multer";
 
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'public');
-      },
-    filename: function (req, file, cb) {
-        cb(null, file.originalname);
-    }
-});
+// Use memory storage so files stay in buffer — no disk writes.
+// This is critical for Render's ephemeral filesystem.
+const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
     if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg") {
@@ -18,4 +13,4 @@ const fileFilter = (req, file, cb) => {
     }
 }
 
-export const upload = multer({storage: storage, fileFilter: fileFilter});
+export const upload = multer({ storage: storage, fileFilter: fileFilter });

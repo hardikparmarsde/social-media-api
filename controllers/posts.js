@@ -1,5 +1,6 @@
 import multer from "multer";
 import Posts from "../models/post.js"
+import { uploadToCloudinary } from "../config/cloudinary.js"
 
 const parseTags = (value) => {
     if (Array.isArray(value)) return value;
@@ -95,43 +96,58 @@ export const getTrendingPosts = async (req, res) => {
 };
 
 export const createPost = async (req, res) => {
-    const url = req.protocol + '://' + req.get('host');
-
-    const newPost = new Posts({
-        creator: req.userId,
-        name:req.body.name,
-        message: req.body.message,
-        selectedFile: req.file == null ? '' : url + '/public/' + req.file.filename,
-        tags: parseTags(req.body.tags),
-        createdAt: new Date().toISOString()
-    });
-
     try {
+        let imageUrl = '';
+        if (req.file) {
+            const result = await uploadToCloudinary(req.file.buffer, {
+                public_id: req.file.originalname.replace(/\.[^.]+$/, ''),
+            });
+            imageUrl = result.secure_url;
+        }
+
+        const newPost = new Posts({
+            creator: req.userId,
+            name: req.body.name,
+            message: req.body.message,
+            selectedFile: imageUrl,
+            tags: parseTags(req.body.tags),
+            createdAt: new Date().toISOString()
+        });
+
         await newPost.save();
         res.status(201).json(newPost);
     } catch(error) {
-        if(error instanceof multer.MulterError)
-            console.log('multer error')
-        res.status(404).json({ message: error.message});
+        if (error instanceof multer.MulterError)
+            console.log('multer error');
+        console.error('Create post error:', error);
+        res.status(500).json({ message: error.message });
     }
 }
 
 export const updatePost = async (req, res) => {
-    const url = req.protocol + '://' + req.get('host');
-    const existing = await Posts.findById(req.params.postId);
-    if (!existing) return res.status(404).json('No post with given id exists.');
-
-    const updatedPost = {
-        message: req.body.message,
-        tags: parseTags(req.body.tags),
-        selectedFile: req.file == null ? existing.selectedFile : url + '/public/' + req.file.filename,
-    };
-
     try {
+        const existing = await Posts.findById(req.params.postId);
+        if (!existing) return res.status(404).json('No post with given id exists.');
+
+        let imageUrl = existing.selectedFile;
+        if (req.file) {
+            const result = await uploadToCloudinary(req.file.buffer, {
+                public_id: req.file.originalname.replace(/\.[^.]+$/, ''),
+            });
+            imageUrl = result.secure_url;
+        }
+
+        const updatedPost = {
+            message: req.body.message,
+            tags: parseTags(req.body.tags),
+            selectedFile: imageUrl,
+        };
+
         const updated = await Posts.findByIdAndUpdate({_id: req.params.postId}, updatedPost, { new: true});
         res.status(200).json(updated);
     } catch (err) {
-        res.status(404).json(err);
+        console.error('Update post error:', err);
+        res.status(500).json({ message: err.message });
     }   
 }
 

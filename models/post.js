@@ -1,5 +1,16 @@
 import mongoose from "mongoose";
 
+const commentSchema = mongoose.Schema(
+    {
+        userId: { type: String, required: true },
+        parentId: { type: String, default: null },
+        name: { type: String, default: '' },
+        text: { type: String, required: true, trim: true, maxlength: 500 },
+        createdAt: { type: Date, default: new Date() },
+    },
+    { _id: true }
+);
+
 const postSchema = mongoose.Schema({
     creator: {
         type: String
@@ -18,6 +29,10 @@ const postSchema = mongoose.Schema({
     },
     likes: { 
         type: [String],
+        default: []
+    },
+    comments: {
+        type: [commentSchema],
         default: []
     },
     createdAt: {

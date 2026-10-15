@@ -1,14 +1,15 @@
+// IMPORTANT: dotenv must load before any other import that reads process.env
+// (e.g. config/cloudinary.js runs cloudinary.config() at module-eval time,
+//  so the dotenv side-effect must happen before that chain is pulled in).
+import 'dotenv/config';
 import express from 'express';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
 import cors from 'cors';
-import dotenv from 'dotenv'
 import postRoutes from './routes/posts.js'
 import userRoutes from './routes/user.js';
 
 const app = express();
-
-dotenv.config();
 
 app.use(cors());
 app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
